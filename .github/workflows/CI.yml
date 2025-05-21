@@ -14,10 +14,12 @@ jobs:
 
     steps:
 
-    - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-    - name: Build
-      run: cargo build
+      - name: Build
+        run: cargo build
+        working-directory: ./src-tauri
 
-    - name: Test
-      run: cargo test
+      - name: Test
+        run: cargo test
+        working-directory: ./src-tauri
