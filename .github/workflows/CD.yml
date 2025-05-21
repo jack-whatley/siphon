@@ -18,15 +18,15 @@ jobs:
 
       - uses: actions/checkout@v4
 
-      - name: Enable Corepack
-        run: |
-          corepack enable
-          yarn set version stable
-
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: lts/*
+
+      - name: Enable Corepack
+        run: |
+          corepack enable
+          yarn set version stable
 
       - name: Install Rust Stable
         uses: dtolnay/rust-toolchain@stable
