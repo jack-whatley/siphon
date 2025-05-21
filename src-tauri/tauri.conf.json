@@ -1,0 +1,44 @@
+{
+    "$schema": "https://schema.tauri.app/config/2",
+    "productName": "siphon",
+    "version": "0.1.0",
+    "identifier": "dev.jackwhatley.siphon",
+    "build": {
+        "beforeDevCommand": "yarn dev",
+        "devUrl": "http://localhost:1420",
+        "beforeBuildCommand": "yarn build",
+        "frontendDist": "../build"
+    },
+    "app": {
+        "windows": [
+            {
+                "title": "siphon",
+                "width": 900,
+                "height": 650,
+                "decorations": false,
+                "resizable": false
+            }
+        ],
+        "security": {
+            "csp": null
+        }
+    },
+    "bundle": {
+        "active": true,
+        "targets": "all",
+        "createUpdaterArtifacts": true,
+        "icon": [
+            "icons/32x32.png",
+            "icons/128x128.png",
+            "icons/128x128@2x.png",
+            "icons/icon.icns",
+            "icons/icon.ico"
+        ]
+    },
+    "plugins": {
+        "updater": {
+            "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDQ5REU4OEU3MjExNEY1QzEKUldUQjlSUWg1NGplU1FYcEw5M1lFVm93Y2FtaUIxUUhtR1BIMjhQSW50a05WdUc3WGs3U3JDVU0K",
+            "endpoints": [ "https://github.com/jack-whatley/siphon/releases/latest/download/latest.json" ]
+        }
+    }
+}
