@@ -1,8 +1,8 @@
 [package]
 name = "siphon"
-version = "0.1.0"
-description = "A Tauri App"
-authors = ["you"]
+version = "0.1.1"
+description = "Siphon yt-dlp wrapper"
+authors = ["Jack Whatley"]
 edition = "2021"
 
 [profile.release]

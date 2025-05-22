@@ -21,6 +21,8 @@
     let isDownloading = $state(false);
     let latestDownload = $state("");
 
+    let downloadDisabled = $derived(isDownloading || preset === "" || url === "");
+
     onMount(async () => path = await getDefaultPath());
     onMount(async () => presets = await getPresets());
 
@@ -127,7 +129,7 @@
         </div>
     </div>
     <div class="flex flex-row mt-auto ml-auto gap-2">
-        <DefaultButton callback={async () => await downloadVideo()} bind:disabled={isDownloading}>
+        <DefaultButton callback={async () => await downloadVideo()} bind:disabled={downloadDisabled}>
             {#if isDownloading}
                 <CircleNotch width="16" height="16" class="animate-spin" />
             {:else}

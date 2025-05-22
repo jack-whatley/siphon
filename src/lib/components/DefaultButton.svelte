@@ -9,12 +9,16 @@
         disabled?: boolean;
     }
 
-    let props: Props = $props();
+    let {
+        children,
+        callback,
+        disabled = $bindable(false)
+    }: Props = $props();
 </script>
 
-<Button.Root bind:disabled={props.disabled} onclick={props.callback}
+<Button.Root bind:disabled={disabled} onclick={callback}
              class="bg-emerald-700 p-2 rounded-md shadow-sm transition-all duration-100 not-disabled:hover:cursor-pointer
             not-disabled:hover:opacity-85 not-disabled:active:scale-[0.98] flex flex-row items-center
             justify-center disabled:opacity-45">
-    {@render props.children()}
+    {@render children()}
 </Button.Root>

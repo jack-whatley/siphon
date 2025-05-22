@@ -89,6 +89,11 @@ impl CommandBuilder {
 
         command.arg(&self.url);
 
+        #[cfg(windows)]
+        {
+            command.creation_flags(0x08000000);
+        }
+
         let output = command.output().await?;
         ensure!(output.status.success(), "Failed to run yt-dlp command");
 
