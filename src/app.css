@@ -30,3 +30,14 @@ input::-ms-clear {
 .scrollbar::-webkit-scrollbar-thumb:hover {
     background: #404040;
 }
+
+.gradient {
+    background: #18181B;
+    background: radial-gradient(
+            circle at center,
+            #262626 0.25rem,
+            transparent 0),
+        radial-gradient(circle at center, #262626 0.25rem, transparent 0);
+    background-size: 1.3rem 1.3rem;
+    background-position: 0 0, 0.65rem 0.65rem;
+}

@@ -8,11 +8,11 @@ export function parseInstallStatus(status: string): InstallStatus {
     switch (status) {
         case "Missing":
             return InstallStatus.Missing;
-        case "UpdateAvailable":
+        case "Update":
             return InstallStatus.UpdateAvailable;
         case "Installed":
             return InstallStatus.Installed;
         default:
-                return InstallStatus.Missing;
+            return InstallStatus.Missing;
     }
 }

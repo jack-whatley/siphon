@@ -525,8 +525,10 @@ checksum = "c469d952047f47f91b68d1cba3f10d63c11d73e4636f24f08daf0278abf01c4d"
 dependencies = [
  "android-tzdata",
  "iana-time-zone",
+ "js-sys",
  "num-traits",
  "serde",
+ "wasm-bindgen",
  "windows-link",
 ]
 
@@ -3886,7 +3888,9 @@ checksum = "56199f7ddabf13fe5074ce809e7d3f42b42ae711800501b5b16ea82ad029c39d"
 name = "siphon"
 version = "0.1.1"
 dependencies = [
+ "async-trait",
  "bytes",
+ "chrono",
  "dirs-next",
  "eyre",
  "futures",

@@ -1,5 +1,7 @@
 <script lang="ts">
     import {InstallStatus} from "$lib";
+    import {ArrowUp, Check, X} from "phosphor-svelte";
+    import SiphonTooltip from "$lib/components/SiphonTooltip.svelte";
 
     let { status = $bindable() }: { status: InstallStatus } = $props();
 
@@ -15,10 +17,21 @@
         [InstallStatus.Installed, "Installed"]
     ]);
 
-    let currentText = $derived(textMap.get(status));
     let currentColour = $derived(colourMap.get(status));
+    let currentTooltip = $derived(textMap.get(status));
 </script>
 
-<div class={["px-2 py-1 rounded-md text-white", currentColour]}>
-    <p class="select-none">{currentText}</p>
-</div>
+<SiphonTooltip>
+    {#snippet trigger()}
+        <div class={["p-1 rounded-full text-white", currentColour]}>
+            {#if status === InstallStatus.Missing}
+                <X width="16" height="16" />
+            {:else if status === InstallStatus.UpdateAvailable}
+                <ArrowUp width="16" height="16" />
+            {:else}
+                <Check width="16" height="16" />
+            {/if}
+        </div>
+    {/snippet}
+    <p class="select-none">{currentTooltip}</p>
+</SiphonTooltip>

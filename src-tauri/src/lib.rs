@@ -6,6 +6,8 @@ mod ffmpeg;
 mod logger;
 mod state;
 mod utils;
+mod installer;
+mod github;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -36,6 +38,8 @@ pub fn run() {
             downloader::commands::default_download_dir,
             downloader::commands::all_presets,
             downloader::commands::download_video,
+            ffmpeg::commands::ffmpeg_state,
+            ffmpeg::commands::update_ffmpeg,
         ])
         .run(tauri::generate_context!())
         .expect("Error while running Siphon Application...");

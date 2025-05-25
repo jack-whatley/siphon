@@ -1,14 +1,16 @@
 <script lang="ts">
-    import {ArrowsClockwise, Bell, BellRinging, DownloadSimple, CircleNotch} from "phosphor-svelte";
+    import {Bell,BellRinging,GearSix,ArrowLeft} from "phosphor-svelte";
 
+    import {page} from '$app/state';
     import LargeButton from "$lib/components/LargeButton.svelte";
     import Status from "$lib/components/Status.svelte";
     import {InstallStatus, parseInstallStatus} from "$lib";
-    import { notificationMenu } from "$lib/state.svelte";
+    import {notificationMenu,downloaderState,ffmpegState} from "$lib/state.svelte";
     import SiphonTooltip from "$lib/components/SiphonTooltip.svelte";
     import {invoke} from "@tauri-apps/api/core";
     import {onMount} from "svelte";
     import {SiphonNotificationHandler} from "$lib/utils";
+    import {goto} from "$app/navigation";
 
     let hasNotifications = $derived(notificationMenu.notifications.length > 0);
     let status = $state({
@@ -21,22 +23,39 @@
     let statusUpdatable = $derived(!(status.state === InstallStatus.Missing || status.state === InstallStatus.UpdateAvailable))
     let downloadDisabled = $derived(statusUpdatable || status.updatingDownloader || status.updatingState);
 
+    let isSettingsPage = $derived(page.url.pathname.includes("/settings"));
+    let settingsLink = $derived(isSettingsPage ? "/" : "/settings");
+
     async function checkStatus() {
-        status.updatingState = true;
+        downloaderState.isUpdating = true;
 
         try {
-            status.state = parseInstallStatus(await invoke<string>("downloader_state"));
+            downloaderState.install = parseInstallStatus(await invoke<string>("downloader_state"));
         }
         catch (e) {
             SiphonNotificationHandler.Instance().RaiseError(e);
         }
         finally {
-            status.updatingState = false;
+            downloaderState.isUpdating = false;
+        }
+    }
+
+    async function checkFFmpegStatus() {
+        ffmpegState.isUpdating = true;
+
+        try {
+            ffmpegState.install = parseInstallStatus(await invoke<string>("ffmpeg_state"));
+        }
+        catch (e) {
+            SiphonNotificationHandler.Instance().RaiseError(e);
+        }
+        finally {
+            ffmpegState.isUpdating = false;
         }
     }
 
     async function updateDownloader() {
-        status.updatingDownloader = true;
+        downloaderState.isDownloading = true;
 
         try {
             await invoke("update_downloader");
@@ -46,51 +65,51 @@
             SiphonNotificationHandler.Instance().RaiseError(e);
         }
         finally {
-            status.updatingDownloader = false;
+            downloaderState.isDownloading = false;
         }
     }
 
-    onMount(async () => await checkStatus());
+    async function updateFFmpeg() {
+        ffmpegState.isDownloading = true;
+
+        try {
+            await invoke("update_ffmpeg");
+            await checkFFmpegStatus();
+        }
+        catch (e) {
+            SiphonNotificationHandler.Instance().RaiseError(e);
+        }
+        finally {
+            ffmpegState.isDownloading = false;
+        }
+    }
+
+    onMount(async () => await Promise.all([checkStatus(), checkFFmpegStatus()]))
 </script>
 
 <div class="bg-zinc-900 border-b border-zinc-700 text-white p-2 flex flex-row items-center justify-items-start">
-    <p class="pr-2 select-none">Downloader Status:</p>
+    <p class="pr-2 select-none">Downloader:</p>
+    <Status status={downloaderState.install} />
     <SiphonTooltip>
         {#snippet trigger()}
-            <Status status={status.state} />
+            <p class="px-2 select-none">FFmpeg:</p>
         {/snippet}
-        <p>Shows the install status of the downloader.</p>
+        <p class="select-none text-xs">FFmpeg is an optional dependency only used with the mp3 preset.</p>
     </SiphonTooltip>
+    <Status status={ffmpegState.install} />
     <div class="ml-auto flex flex-row items-center gap-2">
-        <SiphonTooltip bind:disabled={downloadDisabled}>
-            {#snippet trigger()}
-                <LargeButton callback={async () => await updateDownloader()} bind:disabled={downloadDisabled}>
-                    {#if status.updatingDownloader}
-                        <CircleNotch width="16" height="16" class="animate-spin" />
-                    {:else}
-                        <DownloadSimple width="16" height="16" />
-                    {/if}
-                </LargeButton>
-            {/snippet}
-            <p>Download/Update</p>
-        </SiphonTooltip>
-        <SiphonTooltip>
-            {#snippet trigger()}
-                <LargeButton callback={async () => await checkStatus()} bind:disabled={status.updatingState}>
-                    {#if status.updatingState}
-                        <CircleNotch width="16" height="16" class="animate-spin" />
-                    {:else}
-                        <ArrowsClockwise width="16" height="16" />
-                    {/if}
-                </LargeButton>
-            {/snippet}
-            <p>Check for updates.</p>
-        </SiphonTooltip>
         <LargeButton callback={() => notificationMenu.open = !notificationMenu.open}>
             {#if hasNotifications}
                 <BellRinging width="16" height="16" />
             {:else}
                 <Bell width="16" height="16" />
+            {/if}
+        </LargeButton>
+        <LargeButton callback={() => goto(settingsLink)}>
+            {#if isSettingsPage}
+                <ArrowLeft width="16" height="16" />
+            {:else}
+                <GearSix width="16" height="16" />
             {/if}
         </LargeButton>
     </div>

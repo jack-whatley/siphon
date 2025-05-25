@@ -1,97 +1,53 @@
 use crate::downloader::install::VersionWrapper;
-use crate::logger::UIEvent;
-use crate::{logger, utils};
-use eyre::{eyre, Result};
-use serde::{Deserialize, Serialize};
-use std::sync::atomic::AtomicBool;
-use tokio::sync::Mutex;
+use eyre::Result;
+use async_trait::async_trait;
+use crate::installer::{RequirementInstaller, RequirementStatus};
+use crate::state::AppState;
 
 pub mod commands;
 pub mod install;
-pub mod models;
 pub mod runner;
 
-#[derive(Serialize, Deserialize, Debug, PartialEq)]
-pub enum InstallStatus {
-    Missing,
-    UpdateAvailable,
-    Installed,
-}
+pub struct DownloaderRequirement;
 
-pub struct Downloader {
-    version: Mutex<Option<VersionWrapper>>,
-    update_available: AtomicBool,
-}
-
-impl Downloader {
-    pub async fn init() -> Result<Self> {
-        let version = runner::get_version().await;
-
-        Ok(Self {
-            version: Mutex::new(version),
-            update_available: AtomicBool::new(false),
-        })
-    }
-
-    pub async fn current_status(
-        &mut self,
-        client: &reqwest::Client,
-        app: tauri::AppHandle,
-    ) -> Result<InstallStatus> {
+#[async_trait]
+impl RequirementInstaller for DownloaderRequirement {
+    async fn current_status(&self, app: &AppState) -> Result<RequirementStatus> {
         let disk_version = runner::get_version().await;
 
         if disk_version.is_none() {
-            logger::send_ui_event(UIEvent::downloader_missing(), &app);
-            return Ok(InstallStatus::Missing);
+            return Ok(RequirementStatus::Missing);
         }
 
-        let has_update = self.check_for_update(client).await?;
+        let has_update = check_for_update(
+            disk_version.unwrap(),
+            app
+        ).await?;
 
         if has_update {
-            logger::send_ui_event(UIEvent::downloader_update_available(), &app);
-            Ok(InstallStatus::UpdateAvailable)
+            Ok(RequirementStatus::Update)
         } else {
-            let ffmpeg_path = utils::paths::ffmpeg_executable();
-            if !ffmpeg_path.exists() {
-                return Ok(InstallStatus::Missing);
-            }
-
-            Ok(InstallStatus::Installed)
+            Ok(RequirementStatus::Installed)
         }
     }
 
-    pub async fn update(&mut self, client: &reqwest::Client, app: tauri::AppHandle) -> Result<()> {
-        let current_status = self.current_status(client, app.clone()).await?;
+    async fn update(&self, app: &AppState) -> Result<()> {
+        let current_status = self.current_status(app).await?;
 
-        if current_status == InstallStatus::Installed {
-            tracing::info!(
-                "Install Status is already {:?}, exiting download",
-                current_status
-            );
+        if current_status == RequirementStatus::Installed {
+            tracing::info!("Downloader is already installed, exiting download");
+
             return Ok(());
         }
 
-        install::download_latest_version(client).await?;
-        logger::send_ui_event(UIEvent::downloader_installed(), &app);
+        install::download_latest_version(app).await?;
 
         Ok(())
     }
+}
 
-    async fn check_for_update(&mut self, client: &reqwest::Client) -> Result<bool> {
-        let latest_version = install::fetch_latest_version(client).await?;
-        let current_version = self.version.lock().await;
+async fn check_for_update(current: VersionWrapper, app: &AppState) -> Result<bool> {
+    let latest_version = install::fetch_latest_version(app).await?;
 
-        match *current_version {
-            Some(ref version) => {
-                let result = latest_version > *version;
-
-                self.update_available = AtomicBool::new(result);
-                Ok(result)
-            }
-            None => {
-                self.update_available = AtomicBool::new(true);
-                Ok(true)
-            }
-        }
-    }
+    Ok(latest_version > current)
 }

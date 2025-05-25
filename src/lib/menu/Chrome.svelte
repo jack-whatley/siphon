@@ -17,7 +17,7 @@
 </script>
 
 <div data-tauri-drag-region
-     class="bg-neutral-800 text-white border-zinc-700 border-b h-[35px] flex flex-row items-center pl-2 select-none">
+     class="bg-neutral-800 text-white border-zinc-700 border-b h-[35px] flex flex-row items-center pl-2 select-none z-50">
     <Funnel width="16" height="16" />
     <p class="px-2">Siphon</p>
     <div class="ml-auto flex flex-row items-center h-full">

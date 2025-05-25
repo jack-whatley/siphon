@@ -1,10 +1,10 @@
-use crate::downloader::models::Release;
 use crate::utils;
 use crate::utils::net;
 use eyre::{ensure, Context, OptionExt, Result};
 use serde::{Deserialize, Serialize};
-
-pub const LATEST_URL: &str = "https://api.github.com/repos/yt-dlp/yt-dlp/releases/latest";
+use crate::github::Release;
+use crate::installer::Requirements;
+use crate::state::AppState;
 
 #[derive(Debug, PartialEq, PartialOrd, Serialize, Deserialize)]
 pub struct VersionWrapper {
@@ -41,14 +41,14 @@ impl VersionWrapper {
     }
 }
 
-pub async fn fetch_latest_version(client: &reqwest::Client) -> Result<VersionWrapper> {
-    let latest_release = latest_release(client).await?;
+pub async fn fetch_latest_version(app: &AppState) -> Result<VersionWrapper> {
+    let latest_release = latest_release(app).await?;
 
     Ok(VersionWrapper::parse(&latest_release.tag_name)?)
 }
 
-pub async fn download_latest_version(client: &reqwest::Client) -> Result<()> {
-    let latest_release = latest_release(client).await?;
+pub async fn download_latest_version(app: &AppState) -> Result<()> {
+    let latest_release = latest_release(app).await?;
 
     let download_url = latest_release
         .assets
@@ -58,7 +58,7 @@ pub async fn download_latest_version(client: &reqwest::Client) -> Result<()> {
         .browser_download_url
         .as_str();
 
-    let mut download_stream = net::fetch_stream(client, download_url, None)
+    let mut download_stream = net::fetch_stream(&app.http, download_url, None)
         .await
         .wrap_err_with(|| format!("Failed to download asset {}", download_url))?;
 
@@ -74,15 +74,12 @@ pub async fn download_latest_version(client: &reqwest::Client) -> Result<()> {
     Ok(())
 }
 
-async fn latest_release(client: &reqwest::Client) -> Result<Release> {
-    Ok(net::fetch_json::<Release>(client, LATEST_URL, None)
+async fn latest_release(app: &AppState) -> Result<Release> {
+    app.github
+        .lock()
         .await
-        .wrap_err_with(|| {
-            format!(
-                "Failed to fetch latest version of yt-dlp at url: {}",
-                LATEST_URL
-            )
-        })?)
+        .fetch_latest(&app.http, Requirements::Downloader)
+        .await
 }
 
 #[cfg(test)]

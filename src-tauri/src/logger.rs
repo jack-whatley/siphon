@@ -1,6 +1,6 @@
 use crate::utils::paths;
 use eyre::{Result, WrapErr};
-use serde::{Deserialize, Serialize, Serializer};
+use serde::{Serialize, Serializer};
 use std::fmt::Display;
 use std::fs;
 use std::fs::OpenOptions;
@@ -91,6 +91,7 @@ pub fn init() -> Result<()> {
                 .compact()
                 .with_ansi(false)
                 .with_writer(log_file)
+                // .with_span_events(FmtSpan::FULL)
                 .with_filter(LevelFilter::from_level(Level::INFO)),
         );
 
@@ -138,7 +139,11 @@ where
     T: Into<eyre::Report>,
 {
     fn from(t: T) -> Self {
-        Self(t.into())
+        let report = t.into();
+
+        tracing::error!("Command Returning Error:\n{:#?}", report);
+
+        Self(report)
     }
 }
 

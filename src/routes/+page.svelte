@@ -11,6 +11,7 @@
     import FormLabel from "$lib/components/FormLabel.svelte";
     import DefaultButton from "$lib/components/DefaultButton.svelte";
     import {revealItemInDir} from "@tauri-apps/plugin-opener";
+    import { blur } from 'svelte/transition';
 
     let url = $state("");
     let path = $state("")
@@ -105,7 +106,7 @@
     }
 </script>
 
-<div class="w-full h-full p-2 flex flex-col gap-2">
+<div class="w-full h-full p-2 flex flex-col gap-2" in:blur={{ delay: 200, duration: 200 }}>
     <div class="flex flex-row gap-2">
         <div class="flex-1">
             <FormLabel label="URL">

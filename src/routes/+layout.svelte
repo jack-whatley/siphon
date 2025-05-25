@@ -8,6 +8,7 @@
     import {SiphonNotification, SiphonNotificationHandler} from "$lib/utils";
     import {notificationMenu} from "$lib/state.svelte";
     import type {SiphonBackendNotification} from "$lib/utils/notifications";
+    import ProgressPopup from "$lib/menu/ProgressPopup.svelte";
 
     let { children } = $props();
 
