@@ -2,10 +2,7 @@
 	"$schema": "../gen/schemas/desktop-schema.json",
 	"identifier": "default",
 	"description": "Capability for the main window",
-	"windows": [
-		"main",
-		"splashscreen"
-	],
+	"windows": [ "main" ],
 	"permissions": [
 		"core:default",
 		"core:window:default",
@@ -21,6 +18,17 @@
 			"allow": [
 				{
 					"path": "*"
+				}
+			]
+		},
+		{
+			"identifier": "opener:allow-open-url",
+			"allow": [
+				{
+					"url": "https://github.com/yt-dlp/yt-dlp/blob/master/LICENSE"
+				},
+				{
+					"url": "https://ffmpeg.org/legal.html"
 				}
 			]
 		}

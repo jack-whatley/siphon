@@ -6,19 +6,37 @@
     import Notifications from "$lib/menu/Notifications.svelte";
     import {onDestroy, onMount} from "svelte";
     import {SiphonNotification, SiphonNotificationHandler} from "$lib/utils";
-    import {notificationMenu} from "$lib/state.svelte";
+    import {downloaderStatus, notificationMenu} from "$lib/state.svelte";
     import type {SiphonBackendNotification} from "$lib/utils/notifications";
-    import ProgressPopup from "$lib/menu/ProgressPopup.svelte";
+    import FirstTimePopup from "$lib/menu/FirstTimePopup.svelte";
+    import {invoke} from "@tauri-apps/api/core";
 
     let { children } = $props();
 
-    onMount(async () => await SiphonNotificationHandler.Instance().RegisterListener(addNotification));
+    let firstTime = $state(false);
+
+    onMount(async () => {
+        await SiphonNotificationHandler.Instance().RegisterListener(addNotification);
+        await getFirstTime();
+    });
+
     onDestroy(() => SiphonNotificationHandler.Instance().destroyListener());
 
     function addNotification(notification: SiphonBackendNotification) {
         notificationMenu.notifications.push(new SiphonNotification(notification));
     }
+
+    async function getFirstTime() {
+        try {
+            firstTime = await invoke("initial_setup_required");
+        }
+        catch (e) {
+            SiphonNotificationHandler.Instance().RaiseError(e);
+        }
+    }
 </script>
+
+<FirstTimePopup bind:firstTime={firstTime} />
 
 <div class="w-screen h-screen flex flex-col">
     <Chrome />

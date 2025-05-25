@@ -4,87 +4,17 @@
     import {page} from '$app/state';
     import LargeButton from "$lib/components/LargeButton.svelte";
     import Status from "$lib/components/Status.svelte";
-    import {InstallStatus, parseInstallStatus} from "$lib";
-    import {notificationMenu,downloaderState,ffmpegState} from "$lib/state.svelte";
+    import {notificationMenu,downloaderState,ffmpegState,downloaderStatus,ffmpegStatus} from "$lib/state.svelte";
     import SiphonTooltip from "$lib/components/SiphonTooltip.svelte";
-    import {invoke} from "@tauri-apps/api/core";
-    import {onMount} from "svelte";
-    import {SiphonNotificationHandler} from "$lib/utils";
     import {goto} from "$app/navigation";
+    import {onMount} from "svelte";
 
     let hasNotifications = $derived(notificationMenu.notifications.length > 0);
-    let status = $state({
-        state: InstallStatus.Missing,
-        updatingState: false,
-        updatingDownloader: false,
-    });
-
-    // Strange condition to avoid svelte warning...
-    let statusUpdatable = $derived(!(status.state === InstallStatus.Missing || status.state === InstallStatus.UpdateAvailable))
-    let downloadDisabled = $derived(statusUpdatable || status.updatingDownloader || status.updatingState);
 
     let isSettingsPage = $derived(page.url.pathname.includes("/settings"));
     let settingsLink = $derived(isSettingsPage ? "/" : "/settings");
 
-    async function checkStatus() {
-        downloaderState.isUpdating = true;
-
-        try {
-            downloaderState.install = parseInstallStatus(await invoke<string>("downloader_state"));
-        }
-        catch (e) {
-            SiphonNotificationHandler.Instance().RaiseError(e);
-        }
-        finally {
-            downloaderState.isUpdating = false;
-        }
-    }
-
-    async function checkFFmpegStatus() {
-        ffmpegState.isUpdating = true;
-
-        try {
-            ffmpegState.install = parseInstallStatus(await invoke<string>("ffmpeg_state"));
-        }
-        catch (e) {
-            SiphonNotificationHandler.Instance().RaiseError(e);
-        }
-        finally {
-            ffmpegState.isUpdating = false;
-        }
-    }
-
-    async function updateDownloader() {
-        downloaderState.isDownloading = true;
-
-        try {
-            await invoke("update_downloader");
-            await checkStatus();
-        }
-        catch (e) {
-            SiphonNotificationHandler.Instance().RaiseError(e);
-        }
-        finally {
-            downloaderState.isDownloading = false;
-        }
-    }
-
-    async function updateFFmpeg() {
-        ffmpegState.isDownloading = true;
-
-        try {
-            await invoke("update_ffmpeg");
-            await checkFFmpegStatus();
-        }
-        catch (e) {
-            SiphonNotificationHandler.Instance().RaiseError(e);
-        }
-        finally {
-            ffmpegState.isDownloading = false;
-        }
-    }
-
-    onMount(async () => await Promise.all([checkStatus(), checkFFmpegStatus()]))
+    onMount(async () => await Promise.all([downloaderStatus(), ffmpegStatus()]))
 </script>
 
 <div class="bg-zinc-900 border-b border-zinc-700 text-white p-2 flex flex-row items-center justify-items-start">

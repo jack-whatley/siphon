@@ -16,8 +16,11 @@ pub struct FFMPEGRequirement;
 #[async_trait]
 impl RequirementInstaller for FFMPEGRequirement {
     async fn current_status(&self, app: &AppState) -> eyre::Result<RequirementStatus> {
-        // TODO: CHECK FOR RUNNING FFMPEG COMMAND TO SEE IF ITS TRULY INSTALLED
-        // AS WELL AS DOING THE VERSION FILE STUFF.
+        let ffmpeg_path = utils::paths::ffmpeg_executable();
+
+        if !ffmpeg_path.exists() {
+            return Ok(RequirementStatus::Missing);
+        }
 
         let disk_version = version_store::get().await;
 
@@ -122,6 +125,7 @@ async fn cleanup_files(including_executable: bool) -> eyre::Result<()> {
     let ffmpeg_zip = utils::paths::default_app_dir().join("ffmpeg.7z");
     let ffmpeg_download = utils::paths::ffmpeg_download_dir();
     let ffmpeg_executable = utils::paths::ffmpeg_executable();
+    let old_dir = utils::paths::default_app_dir().join("ffmpeg");
 
     if ffmpeg_zip.exists() {
         tokio::fs::remove_file(&ffmpeg_zip).await?;
@@ -133,6 +137,10 @@ async fn cleanup_files(including_executable: bool) -> eyre::Result<()> {
 
     if including_executable && ffmpeg_executable.exists() {
         tokio::fs::remove_file(&ffmpeg_executable).await?;
+    }
+
+    if old_dir.exists() && old_dir.is_dir() {
+        tokio::fs::remove_dir_all(&old_dir).await?;
     }
 
     Ok(())

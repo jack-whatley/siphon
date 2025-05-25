@@ -7,6 +7,8 @@ use crate::installer::Requirements;
 use crate::utils;
 use crate::utils::net;
 
+const CACHE_REFRESH_AGE: i64 = 3;
+
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Release {
     pub name: String,
@@ -48,7 +50,7 @@ impl GithubCache {
             let current_time = Utc::now();
             let diff = current_time - cached.fetch_date;
 
-            if diff.num_days() > 1 {
+            if diff.num_days() >= CACHE_REFRESH_AGE {
                 tracing::info!(
                     "Release Cache {:#?} is out of date, updating",
                     req

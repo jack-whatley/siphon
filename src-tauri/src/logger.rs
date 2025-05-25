@@ -101,21 +101,6 @@ pub fn init() -> Result<()> {
     Ok(())
 }
 
-#[tauri::command]
-pub fn open_log() -> std::result::Result<(), String> {
-    let log_path = logger_path();
-
-    tauri_plugin_opener::open_path(&log_path, None::<&str>)
-        .map_err(|err| format!("Failed to open log file: {:#?}", err))?;
-
-    Ok(())
-}
-
-#[tauri::command]
-pub fn log_error(msg: String) {
-    tracing::error!("{}", msg);
-}
-
 #[derive(Debug)]
 pub struct CommandError(eyre::Error);
 

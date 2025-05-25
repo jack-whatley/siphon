@@ -11,7 +11,9 @@
     import FormLabel from "$lib/components/FormLabel.svelte";
     import DefaultButton from "$lib/components/DefaultButton.svelte";
     import {revealItemInDir} from "@tauri-apps/plugin-opener";
-    import { blur } from 'svelte/transition';
+    import {blur} from 'svelte/transition';
+    import {InstallStatus} from "$lib";
+    import {downloaderState,ffmpegState} from "$lib/state.svelte";
 
     let url = $state("");
     let path = $state("")
@@ -22,7 +24,11 @@
     let isDownloading = $state(false);
     let latestDownload = $state("");
 
-    let downloadDisabled = $derived(isDownloading || preset === "" || url === "");
+    let downloadDisabled = $derived(
+        isDownloading || preset === "" || url === "" ||
+        downloaderState.install !== InstallStatus.Installed ||
+        ffmpegState.install !== InstallStatus.Installed
+    );
 
     onMount(async () => path = await getDefaultPath());
     onMount(async () => presets = await getPresets());

@@ -8,6 +8,7 @@ mod state;
 mod utils;
 mod installer;
 mod github;
+mod commands;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -31,8 +32,9 @@ pub fn run() {
         })
         .plugin(tauri_plugin_opener::init())
         .invoke_handler(tauri::generate_handler![
-            logger::open_log,
-            logger::log_error,
+            commands::open_log,
+            commands::log_error,
+            commands::initial_setup_required,
             downloader::commands::downloader_state,
             downloader::commands::update_downloader,
             downloader::commands::default_download_dir,
